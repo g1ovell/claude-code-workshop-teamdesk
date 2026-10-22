@@ -16,6 +16,11 @@ export const bookingsRouter = router({
     .mutation(({ ctx, input }) =>
       ctx.services.bookings.create(input.actorId, input.booking)
     ),
+  forMemberDay: publicProcedure
+    .input(z.object({ day: z.iso.datetime(), memberId: z.string() }))
+    .query(({ ctx, input }) =>
+      ctx.services.bookings.listForMemberOnDay(input.memberId, input.day)
+    ),
   forRoom: publicProcedure
     .input(z.object({ day: z.iso.datetime(), roomId: z.string() }))
     .query(({ ctx, input }) =>
