@@ -71,6 +71,27 @@ export async function listMemberBookings(
   return rows.map(toBooking);
 }
 
+/** A member's active bookings that overlap [from, to), earliest first. */
+export async function listMemberBookingsInRange(
+  db: Database,
+  memberId: string,
+  range: { from: string; to: string }
+): Promise<Booking[]> {
+  const rows = await db
+    .select()
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.memberId, Number(memberId)),
+        isNull(bookings.cancelledAt),
+        lt(bookings.startsAt, range.to),
+        gt(bookings.endsAt, range.from)
+      )
+    )
+    .orderBy(asc(bookings.startsAt));
+  return rows.map(toBooking);
+}
+
 /**
  * Active bookings in the room that overlap [startsAt, endsAt). Ends are
  * exclusive, so a booking ending at 10:00 does not overlap one starting then.

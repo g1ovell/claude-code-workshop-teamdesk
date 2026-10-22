@@ -164,4 +164,28 @@ describe("bookings service", () => {
 
     expect(tomorrow.startsAt).toBe(nextDay("09:00"));
   });
+
+  test("listForMemberOnDay returns only the member's bookings for that UTC day", async () => {
+    const nextDay = (time: string) =>
+      at(time).replace("2026-10-23", "2026-10-24");
+    const todayBooking = await bookings.create(
+      team.ana.id,
+      standUp(team.bigRoom.id, at("09:00"), at("09:30"))
+    );
+    await bookings.create(
+      team.ben.id,
+      standUp(team.smallRoom.id, at("10:00"), at("10:30"))
+    );
+    await bookings.create(
+      team.ana.id,
+      standUp(team.bigRoom.id, nextDay("09:00"), nextDay("09:30"))
+    );
+
+    const anaToday = await bookings.listForMemberOnDay(
+      team.ana.id,
+      at("00:00")
+    );
+
+    expect(anaToday.map((b) => b.id)).toEqual([todayBooking.id]);
+  });
 });

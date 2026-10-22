@@ -7,6 +7,7 @@ import {
   getBooking,
   insertBooking,
   listMemberBookings,
+  listMemberBookingsInRange,
   listRoomBookings,
   updateBookingTimes,
 } from "@repo/db/bookings";
@@ -58,6 +59,8 @@ export interface BookingsService {
   /** Throws ForbiddenError unless the actor owns the booking or is an admin. */
   cancel: (actorId: string, bookingId: string) => Promise<Booking>;
   create: (actorId: string, input: CreateBookingInput) => Promise<Booking>;
+  /** A member's active bookings on the UTC day `day` falls on. */
+  listForMemberOnDay: (memberId: string, day: string) => Promise<Booking[]>;
   /** A room's active bookings on the UTC day `day` falls on. */
   listForRoom: (roomId: string, day: string) => Promise<Booking[]>;
   /** The member's active bookings that have not ended by `now`. */
@@ -181,6 +184,10 @@ export const createBookingsService = (db: Database): BookingsService => ({
       }
       throw error;
     }
+  },
+  listForMemberOnDay: (memberId, day) => {
+    const { end, start } = utcDayBounds(day);
+    return listMemberBookingsInRange(db, memberId, { from: start, to: end });
   },
   listForRoom: (roomId, day) => {
     const { end, start } = utcDayBounds(day);

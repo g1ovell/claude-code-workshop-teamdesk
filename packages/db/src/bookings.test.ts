@@ -5,6 +5,7 @@ import {
   getBooking,
   insertBooking,
   listMemberBookings,
+  listMemberBookingsInRange,
   listRoomBookings,
   updateBookingTimes,
 } from "./bookings.ts";
@@ -114,5 +115,17 @@ describe("bookings", () => {
     });
 
     expect(moved).toMatchObject({ endsAt: at("12:00"), startsAt: at("11:00") });
+  });
+
+  test("listMemberBookingsInRange returns only bookings overlapping the range", async () => {
+    const todayBooking = await book(at("09:00"), at("10:00"));
+    await book("2026-10-24T09:00:00.000Z", "2026-10-24T10:00:00.000Z");
+
+    const results = await listMemberBookingsInRange(db, memberId, {
+      from: "2026-10-23T00:00:00.000Z",
+      to: "2026-10-24T00:00:00.000Z",
+    });
+
+    expect(results.map((b) => b.id)).toEqual([todayBooking.id]);
   });
 });
