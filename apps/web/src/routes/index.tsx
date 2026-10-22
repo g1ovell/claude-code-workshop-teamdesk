@@ -24,6 +24,11 @@ const pages = [
     title: "Tasks",
     to: "/tasks",
   },
+  {
+    description: "Your bookings for the day and your open tasks in one place.",
+    title: "My day",
+    to: "/my-day",
+  },
 ] as const;
 
 function App() {
