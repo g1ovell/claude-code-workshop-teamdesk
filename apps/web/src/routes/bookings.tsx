@@ -23,6 +23,7 @@ import { useActingMember } from "#/hooks/use-acting-member";
 import { useAction } from "#/hooks/use-action";
 import { getTrpc } from "#/integrations/trpc/client";
 import { todayUtc } from "#/lib/datetime";
+import { useI18n } from "#/lib/i18n";
 
 const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -70,6 +71,7 @@ function BookingsPage() {
   const { actingMember, setActingMemberId } = useActingMember(members);
   const createBooking = useAction();
   const cancelBooking = useAction();
+  const { t } = useI18n();
   const actorId = actingMember?.id ?? "";
   const [upcoming, setUpcoming] = useState<Booking[]>([]);
 
@@ -142,15 +144,22 @@ function BookingsPage() {
   );
 
   const describeForRoom = useCallback(
-    (booking: Booking) =>
-      `booked by ${memberNames.get(booking.memberId) ?? "unknown member"}`,
-    [memberNames]
+    (booking: Booking) => {
+      const memberName =
+        memberNames.get(booking.memberId) ?? t("unknown member", "未知成员");
+      return t(`booked by ${memberName}`, `由 ${memberName} 预订`);
+    },
+    [memberNames, t]
   );
 
   const describeUpcoming = useCallback(
-    (booking: Booking) =>
-      `${roomNames.get(booking.roomId) ?? "archived room"} on ${booking.startsAt.slice(0, 10)}`,
-    [roomNames]
+    (booking: Booking) => {
+      const roomName =
+        roomNames.get(booking.roomId) ?? t("archived room", "已归档会议室");
+      const dateStr = booking.startsAt.slice(0, 10);
+      return t(`${roomName} on ${dateStr}`, `${dateStr} · ${roomName}`);
+    },
+    [roomNames, t]
   );
 
   return (
@@ -158,11 +167,13 @@ function BookingsPage() {
       <section className="flex max-w-3xl flex-col gap-4">
         <p className="island-kicker m-0">Teamdesk</p>
         <h1 className="display-title m-0 text-4xl text-foreground sm:text-5xl">
-          Bookings
+          {t("Bookings", "会议室预订")}
         </h1>
         <p className="m-0 text-base text-muted-foreground leading-8">
-          Pick a room and a day to see who has it, then book a slot. All times
-          are UTC.
+          {t(
+            "Pick a room and a day to see who has it, then book a slot. All times are UTC.",
+            "选择会议室和日期查看排期并预订时段。所有时间均为 UTC。"
+          )}
         </p>
         <MemberPicker
           members={members}
@@ -181,7 +192,8 @@ function BookingsPage() {
             >
               {rooms.map((r) => (
                 <NativeSelectOption key={r.id} value={r.id}>
-                  {r.name} (seats {r.capacity})
+                  {r.name} (
+                  {t(`seats ${r.capacity}`, `可容纳 ${r.capacity} 人`)})
                 </NativeSelectOption>
               ))}
             </NativeSelect>
@@ -206,33 +218,39 @@ function BookingsPage() {
 
           <section className="mt-10">
             <h2 className="mb-4 font-heading text-2xl text-foreground">
-              {room.name} on {day}
+              {t(`${room.name} on ${day}`, `${day} · ${room.name} 排期`)}
             </h2>
             <FormError message={cancelBooking.error} />
             <BookingList
               bookings={bookings}
               describe={describeForRoom}
               disabled={cancelBooking.pending}
-              emptyText="Nothing booked yet."
+              emptyText={t("Nothing booked yet.", "当天暂无预订。")}
               onCancel={handleCancel}
             />
           </section>
         </>
       ) : (
         <p className="mt-10 text-muted-foreground text-sm">
-          There are no rooms yet. Add one on the Rooms page.
+          {t(
+            "There are no rooms yet. Add one on the Rooms page.",
+            "暂无会议室，请先前往“会议室”页面添加。"
+          )}
         </p>
       )}
 
       <section className="mt-10">
         <h2 className="mb-4 font-heading text-2xl text-foreground">
-          My upcoming bookings
+          {t("My upcoming bookings", "我即将到来的预订")}
         </h2>
         <BookingList
           bookings={upcoming}
           describe={describeUpcoming}
           disabled={cancelBooking.pending}
-          emptyText="You have no upcoming bookings."
+          emptyText={t(
+            "You have no upcoming bookings.",
+            "您暂无即将到来的预订。"
+          )}
           onCancel={handleCancel}
         />
       </section>

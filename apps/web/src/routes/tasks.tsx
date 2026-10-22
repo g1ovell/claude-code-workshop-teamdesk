@@ -14,6 +14,7 @@ import {
 import { useActingMember } from "#/hooks/use-acting-member";
 import { useAction } from "#/hooks/use-action";
 import { getTrpc } from "#/integrations/trpc/client";
+import { useI18n } from "#/lib/i18n";
 
 export const Route = createFileRoute("/tasks")({
   loader: async () => {
@@ -33,6 +34,7 @@ function TasksPage() {
   const { actingMember, setActingMemberId } = useActingMember(members);
   const createTask = useAction();
   const updateTask = useAction();
+  const { t } = useI18n();
   const actorId = actingMember?.id ?? "";
 
   const handleCreate = useCallback(
@@ -78,10 +80,13 @@ function TasksPage() {
       <section className="flex max-w-3xl flex-col gap-4">
         <p className="island-kicker m-0">Teamdesk</p>
         <h1 className="display-title m-0 text-4xl text-foreground sm:text-5xl">
-          Tasks
+          {t("Tasks", "任务管理")}
         </h1>
         <p className="m-0 text-base text-muted-foreground leading-8">
-          Shared jobs for the team. Hand them out and tick them off.
+          {t(
+            "Shared jobs for the team. Hand them out and tick them off.",
+            "团队共享待办事项，轻松分配负责人并标记完成。"
+          )}
         </p>
         <MemberPicker
           members={members}
@@ -91,17 +96,19 @@ function TasksPage() {
       </section>
 
       <form className="island-shell mt-10 p-6 sm:p-8" onSubmit={handleCreate}>
-        <p className="island-kicker mb-3">New task</p>
+        <p className="island-kicker mb-3">{t("New task", "新建任务")}</p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Input
             aria-label="Title"
             maxLength={TASK_TITLE_MAX_LENGTH}
             name="title"
-            placeholder="What needs doing?"
+            placeholder={t("What needs doing?", "需要做什么？")}
             required
           />
           <NativeSelect aria-label="Assignee" defaultValue="" name="assigneeId">
-            <NativeSelectOption value="">Unassigned</NativeSelectOption>
+            <NativeSelectOption value="">
+              {t("Unassigned", "未分配")}
+            </NativeSelectOption>
             {members.map((member) => (
               <NativeSelectOption key={member.id} value={member.id}>
                 {member.name}
@@ -115,7 +122,9 @@ function TasksPage() {
             type="date"
           />
           <Button disabled={createTask.pending} type="submit">
-            {createTask.pending ? "Adding…" : "Add task"}
+            {createTask.pending
+              ? t("Adding…", "添加中…")
+              : t("Add task", "添加任务")}
           </Button>
         </div>
         <FormError message={createTask.error} />

@@ -1,6 +1,7 @@
 import type { Room } from "@repo/db/shared";
 import { type MouseEvent, useCallback } from "react";
 import { Button } from "#/components/ui/button";
+import { useI18n } from "#/lib/i18n";
 
 interface RoomListProps {
   disabled: boolean;
@@ -13,6 +14,7 @@ export default function RoomList({
   onArchive,
   rooms,
 }: RoomListProps) {
+  const { t } = useI18n();
   const handleArchive = useCallback(
     (event: MouseEvent<HTMLButtonElement>) =>
       onArchive(event.currentTarget.value),
@@ -20,7 +22,11 @@ export default function RoomList({
   );
 
   if (rooms.length === 0) {
-    return <p className="text-muted-foreground text-sm">No rooms yet.</p>;
+    return (
+      <p className="text-muted-foreground text-sm">
+        {t("No rooms yet.", "暂无会议室。")}
+      </p>
+    );
   }
   return (
     <ul className="m-0 list-none space-y-4 p-0">
@@ -32,7 +38,7 @@ export default function RoomList({
           <div>
             <p className="m-0 font-semibold text-foreground">{room.name}</p>
             <p className="m-0 text-muted-foreground text-sm">
-              Seats {room.capacity}
+              {t(`Seats ${room.capacity}`, `可容纳 ${room.capacity} 人`)}
             </p>
           </div>
           <Button
@@ -42,7 +48,7 @@ export default function RoomList({
             value={room.id}
             variant="outline"
           >
-            Archive
+            {t("Archive", "归档")}
           </Button>
         </li>
       ))}

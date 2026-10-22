@@ -17,6 +17,7 @@ import { useActingMember } from "#/hooks/use-acting-member";
 import { useAction } from "#/hooks/use-action";
 import { getTrpc } from "#/integrations/trpc/client";
 import { todayUtc } from "#/lib/datetime";
+import { useI18n } from "#/lib/i18n";
 
 const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -51,6 +52,7 @@ function MyDayPage() {
   const { actingMember, setActingMemberId } = useActingMember(members);
   const cancelBooking = useAction();
   const updateTask = useAction();
+  const { t } = useI18n();
   const actorId = actingMember?.id ?? "";
 
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -131,8 +133,8 @@ function MyDayPage() {
 
   const describeBooking = useCallback(
     (booking: Booking) =>
-      `${roomNames.get(booking.roomId) ?? "archived room"} (${booking.attendees} ${booking.attendees === 1 ? "person" : "people"})`,
-    [roomNames]
+      roomNames.get(booking.roomId) ?? t("archived room", "已归档会议室"),
+    [roomNames, t]
   );
 
   return (
@@ -140,11 +142,13 @@ function MyDayPage() {
       <section className="flex max-w-3xl flex-col gap-4">
         <p className="island-kicker m-0">Teamdesk</p>
         <h1 className="display-title m-0 text-4xl text-foreground sm:text-5xl">
-          My day
+          {t("My day", "今日概览")}
         </h1>
         <p className="m-0 text-base text-muted-foreground leading-8">
-          Your room bookings for the selected UTC day and your open tasks in one
-          place.
+          {t(
+            "Your room bookings for the selected UTC day and your open tasks in one place.",
+            "在一个页面集中查看您所选 UTC 日期的会议室预订与未完成任务。"
+          )}
         </p>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <MemberPicker
@@ -164,21 +168,24 @@ function MyDayPage() {
 
       <section className="mt-10">
         <h2 className="mb-4 font-heading text-2xl text-foreground">
-          My bookings on {day}
+          {t(`My bookings on ${day}`, `我在 ${day} 的预订`)}
         </h2>
         <FormError message={cancelBooking.error} />
         <BookingList
           bookings={bookings}
           describe={describeBooking}
           disabled={cancelBooking.pending}
-          emptyText="You have no bookings on this day."
+          emptyText={t(
+            "You have no bookings on this day.",
+            "您在当天没有会议室预订。"
+          )}
           onCancel={handleCancelBooking}
         />
       </section>
 
       <section className="mt-10">
         <h2 className="mb-4 font-heading text-2xl text-foreground">
-          My open tasks
+          {t("My open tasks", "我的待办任务")}
         </h2>
         <FormError message={updateTask.error} />
         <TaskList

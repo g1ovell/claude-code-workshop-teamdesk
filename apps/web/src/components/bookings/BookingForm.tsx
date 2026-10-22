@@ -4,6 +4,7 @@ import FormError from "#/components/form-error";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { isoFromDayAndTime } from "#/lib/datetime";
+import { useI18n } from "#/lib/i18n";
 
 export interface BookingDraft {
   attendees: number;
@@ -28,6 +29,7 @@ export default function BookingForm({
   onSubmit,
   pending,
 }: BookingFormProps) {
+  const { t } = useI18n();
   const handleSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
@@ -48,10 +50,15 @@ export default function BookingForm({
 
   return (
     <form className="island-shell p-6 sm:p-8" onSubmit={handleSubmit}>
-      <p className="island-kicker mb-3">New booking on {day} (times in UTC)</p>
+      <p className="island-kicker mb-3">
+        {t(
+          `New booking on ${day} (times in UTC)`,
+          `新建 ${day} 的预订（UTC 时间）`
+        )}
+      </p>
       <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_1fr_auto] sm:items-end">
         <label className="grid gap-1 text-sm" htmlFor="booking-title">
-          Title
+          {t("Title", "会议主题")}
           <Input
             id="booking-title"
             maxLength={BOOKING_TITLE_MAX_LENGTH}
@@ -60,7 +67,7 @@ export default function BookingForm({
           />
         </label>
         <label className="grid gap-1 text-sm" htmlFor="booking-start">
-          Start
+          {t("Start", "开始时间")}
           <Input
             defaultValue="09:00"
             id="booking-start"
@@ -71,7 +78,7 @@ export default function BookingForm({
           />
         </label>
         <label className="grid gap-1 text-sm" htmlFor="booking-end">
-          End
+          {t("End", "结束时间")}
           <Input
             defaultValue="10:00"
             id="booking-end"
@@ -82,7 +89,7 @@ export default function BookingForm({
           />
         </label>
         <label className="grid gap-1 text-sm" htmlFor="booking-attendees">
-          Attendees
+          {t("Attendees", "参会人数")}
           <Input
             defaultValue={1}
             id="booking-attendees"
@@ -94,7 +101,7 @@ export default function BookingForm({
           />
         </label>
         <Button disabled={pending} type="submit">
-          {pending ? "Booking…" : "Book"}
+          {pending ? t("Booking…", "预订中…") : t("Book", "立即预订")}
         </Button>
       </div>
       <FormError message={error} />

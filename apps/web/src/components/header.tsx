@@ -1,7 +1,11 @@
 import { Link } from "@tanstack/react-router";
+import { useI18n } from "#/lib/i18n";
+import LanguageToggle from "./language-toggle";
 import ThemeToggle from "./theme-toggle";
 
 export default function Header() {
+  const { t } = useI18n();
+
   return (
     <header className="sticky top-0 z-50 border-border border-b bg-background/90 px-4 backdrop-blur-lg">
       <nav className="page-wrap flex flex-wrap items-center gap-x-3 gap-y-2 py-3 sm:py-4">
@@ -21,49 +25,56 @@ export default function Header() {
             className="nav-link"
             to="/"
           >
-            Home
+            {t("Home", "首页")}
           </Link>
           <Link
             activeProps={{ className: "nav-link is-active" }}
             className="nav-link"
             to="/about"
           >
-            About
+            {t("About", "关于")}
           </Link>
           <Link
             activeProps={{ className: "nav-link is-active" }}
             className="nav-link"
             to="/notes"
           >
-            Notes
+            {t("Notes", "笔记")}
           </Link>
           <Link
             activeProps={{ className: "nav-link is-active" }}
             className="nav-link"
             to="/team"
           >
-            Team
+            {t("Team", "团队")}
           </Link>
           <Link
             activeProps={{ className: "nav-link is-active" }}
             className="nav-link"
             to="/rooms"
           >
-            Rooms
+            {t("Rooms", "会议室")}
           </Link>
           <Link
             activeProps={{ className: "nav-link is-active" }}
             className="nav-link"
             to="/bookings"
           >
-            Bookings
+            {t("Bookings", "预订")}
           </Link>
           <Link
             activeProps={{ className: "nav-link is-active" }}
             className="nav-link"
             to="/tasks"
           >
-            Tasks
+            {t("Tasks", "任务")}
+          </Link>
+          <Link
+            activeProps={{ className: "nav-link is-active" }}
+            className="nav-link"
+            to="/my-day"
+          >
+            {t("My day", "今日概览")}
           </Link>
           <a
             className="nav-link"
@@ -71,11 +82,12 @@ export default function Header() {
             rel="noreferrer"
             target="_blank"
           >
-            Docs
+            {t("Docs", "文档")}
           </a>
         </div>
 
         <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+          <LanguageToggle />
           <ThemeToggle />
         </div>
       </nav>

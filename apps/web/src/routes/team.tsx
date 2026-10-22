@@ -20,6 +20,7 @@ import { useActingMember } from "#/hooks/use-acting-member";
 import { useAction } from "#/hooks/use-action";
 import { getTrpc } from "#/integrations/trpc/client";
 import { formatUtc } from "#/lib/datetime";
+import { useI18n } from "#/lib/i18n";
 
 export const Route = createFileRoute("/team")({
   loader: async () => {
@@ -39,6 +40,7 @@ function TeamPage() {
   const { actingMember, setActingMemberId } = useActingMember(members);
   const addMember = useAction();
   const postAnnouncement = useAction();
+  const { t } = useI18n();
   const actorId = actingMember?.id ?? "";
 
   const memberNames = useMemo(
@@ -93,10 +95,13 @@ function TeamPage() {
       <section className="flex max-w-3xl flex-col gap-4">
         <p className="island-kicker m-0">Teamdesk</p>
         <h1 className="display-title m-0 text-4xl text-foreground sm:text-5xl">
-          Team
+          {t("Team", "团队")}
         </h1>
         <p className="m-0 text-base text-muted-foreground leading-8">
-          Who is on the team and what they need to know.
+          {t(
+            "Who is on the team and what they need to know.",
+            "团队成员名单与重要通知公告。"
+          )}
         </p>
         <MemberPicker
           members={members}
@@ -106,14 +111,20 @@ function TeamPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="mb-4 font-heading text-2xl text-foreground">Members</h2>
+        <h2 className="mb-4 font-heading text-2xl text-foreground">
+          {t("Members", "成员列表")}
+        </h2>
         <ul className="m-0 list-none space-y-4 p-0">
           {members.map((member) => (
             <li className="border-border border-t pt-4" key={member.id}>
               <p className="m-0 font-semibold text-foreground">{member.name}</p>
               <p className="m-0 text-muted-foreground text-sm">
-                {member.email}, {member.role}, joined{" "}
-                {formatUtc(member.joinedAt).slice(0, 10)}
+                {member.email},{" "}
+                {t(member.role, member.role === "admin" ? "管理员" : "成员")},{" "}
+                {t(
+                  `joined ${formatUtc(member.joinedAt).slice(0, 10)}`,
+                  `加入于 ${formatUtc(member.joinedAt).slice(0, 10)}`
+                )}
               </p>
             </li>
           ))}
@@ -124,31 +135,35 @@ function TeamPage() {
             className="island-shell mt-6 p-6 sm:p-8"
             onSubmit={handleAddMember}
           >
-            <p className="island-kicker mb-3">Add member</p>
+            <p className="island-kicker mb-3">
+              {t("Add member", "添加新成员")}
+            </p>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Input
                 aria-label="Name"
                 maxLength={MEMBER_NAME_MAX_LENGTH}
                 name="name"
-                placeholder="Name"
+                placeholder={t("Name", "姓名")}
                 required
               />
               <Input
                 aria-label="Email"
                 name="email"
-                placeholder="Email"
+                placeholder={t("Email", "邮箱")}
                 required
                 type="email"
               />
               <NativeSelect aria-label="Role" defaultValue="member" name="role">
                 {MEMBER_ROLES.map((role) => (
                   <NativeSelectOption key={role} value={role}>
-                    {role}
+                    {t(role, role === "admin" ? "管理员" : "成员")}
                   </NativeSelectOption>
                 ))}
               </NativeSelect>
               <Button disabled={addMember.pending} type="submit">
-                {addMember.pending ? "Adding…" : "Add member"}
+                {addMember.pending
+                  ? t("Adding…", "添加中…")
+                  : t("Add member", "添加成员")}
               </Button>
             </div>
             <FormError message={addMember.error} />
@@ -158,14 +173,14 @@ function TeamPage() {
 
       <section className="mt-10">
         <h2 className="mb-4 font-heading text-2xl text-foreground">
-          Announcements
+          {t("Announcements", "团队公告")}
         </h2>
         <form className="island-shell mb-6 p-6 sm:p-8" onSubmit={handlePost}>
           <label
             className="island-kicker mb-3 block"
             htmlFor="announcement-body"
           >
-            Post an announcement
+            {t("Post an announcement", "发布新公告")}
           </label>
           <Textarea
             id="announcement-body"
@@ -178,7 +193,9 @@ function TeamPage() {
             disabled={postAnnouncement.pending}
             type="submit"
           >
-            {postAnnouncement.pending ? "Posting…" : "Post"}
+            {postAnnouncement.pending
+              ? t("Posting…", "发布中…")
+              : t("Post", "发布")}
           </Button>
           <FormError message={postAnnouncement.error} />
         </form>

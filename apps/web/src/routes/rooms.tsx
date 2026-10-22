@@ -10,6 +10,7 @@ import { Input } from "#/components/ui/input";
 import { useActingMember } from "#/hooks/use-acting-member";
 import { useAction } from "#/hooks/use-action";
 import { getTrpc } from "#/integrations/trpc/client";
+import { useI18n } from "#/lib/i18n";
 
 export const Route = createFileRoute("/rooms")({
   loader: async () => {
@@ -29,6 +30,7 @@ function RoomsPage() {
   const { actingMember, setActingMemberId } = useActingMember(members);
   const addRoom = useAction();
   const archiveRoom = useAction();
+  const { t } = useI18n();
   const actorId = actingMember?.id ?? "";
 
   const handleAdd = useCallback(
@@ -65,10 +67,13 @@ function RoomsPage() {
       <section className="flex max-w-3xl flex-col gap-4">
         <p className="island-kicker m-0">Teamdesk</p>
         <h1 className="display-title m-0 text-4xl text-foreground sm:text-5xl">
-          Rooms
+          {t("Rooms", "会议室")}
         </h1>
         <p className="m-0 text-base text-muted-foreground leading-8">
-          The rooms the team can book. Only admins can add or archive them.
+          {t(
+            "The rooms the team can book. Only admins can add or archive them.",
+            "团队可预订的会议室列表。仅管理员可以添加或归档会议室。"
+          )}
         </p>
         <MemberPicker
           members={members}
@@ -78,13 +83,13 @@ function RoomsPage() {
       </section>
 
       <form className="island-shell mt-10 p-6 sm:p-8" onSubmit={handleAdd}>
-        <p className="island-kicker mb-3">Add room</p>
+        <p className="island-kicker mb-3">{t("Add room", "添加会议室")}</p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Input
             aria-label="Room name"
             maxLength={ROOM_NAME_MAX_LENGTH}
             name="name"
-            placeholder="Room name"
+            placeholder={t("Room name", "会议室名称")}
             required
           />
           <Input
@@ -92,12 +97,14 @@ function RoomsPage() {
             max={ROOM_CAPACITY_MAX}
             min={1}
             name="capacity"
-            placeholder="Capacity"
+            placeholder={t("Capacity", "容纳人数")}
             required
             type="number"
           />
           <Button disabled={addRoom.pending} type="submit">
-            {addRoom.pending ? "Adding…" : "Add room"}
+            {addRoom.pending
+              ? t("Adding…", "添加中…")
+              : t("Add room", "添加会议室")}
           </Button>
         </div>
         <FormError message={addRoom.error} />

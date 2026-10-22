@@ -5,6 +5,7 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "#/components/ui/native-select";
+import { useI18n } from "#/lib/i18n";
 
 interface TaskListProps {
   disabled: boolean;
@@ -21,6 +22,7 @@ export default function TaskList({
   onComplete,
   tasks,
 }: TaskListProps) {
+  const { t } = useI18n();
   const handleAssign = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
       const { taskId } = event.currentTarget.dataset;
@@ -40,7 +42,7 @@ export default function TaskList({
   if (tasks.length === 0) {
     return (
       <p className="text-muted-foreground text-sm">
-        No tasks yet. Add the first one above.
+        {t("No tasks yet. Add the first one above.", "暂无任务。")}
       </p>
     );
   }
@@ -62,9 +64,14 @@ export default function TaskList({
               {task.title}
             </p>
             <p className="m-0 text-muted-foreground text-xs">
-              {task.dueOn ? `Due ${task.dueOn}` : "No due date"}
+              {task.dueOn
+                ? t(`Due ${task.dueOn}`, `截止日期 ${task.dueOn}`)
+                : t("No due date", "无截止日期")}
               {task.completedAt
-                ? `, done ${task.completedAt.slice(0, 10)}`
+                ? t(
+                    `, done ${task.completedAt.slice(0, 10)}`,
+                    `，完成于 ${task.completedAt.slice(0, 10)}`
+                  )
                 : ""}
             </p>
           </div>
@@ -77,7 +84,9 @@ export default function TaskList({
               size="sm"
               value={task.assigneeId ?? ""}
             >
-              <NativeSelectOption value="">Unassigned</NativeSelectOption>
+              <NativeSelectOption value="">
+                {t("Unassigned", "未分配")}
+              </NativeSelectOption>
               {members.map((member) => (
                 <NativeSelectOption key={member.id} value={member.id}>
                   {member.name}
@@ -92,7 +101,7 @@ export default function TaskList({
                 value={task.id}
                 variant="outline"
               >
-                Complete
+                {t("Complete", "完成")}
               </Button>
             )}
           </div>

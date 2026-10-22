@@ -2,6 +2,7 @@ import type { Booking } from "@repo/db/shared";
 import { useCallback } from "react";
 import { Button } from "#/components/ui/button";
 import { formatUtcRange } from "#/lib/datetime";
+import { useI18n } from "#/lib/i18n";
 
 interface BookingCardProps {
   booking: Booking;
@@ -17,6 +18,7 @@ export default function BookingCard({
   disabled,
   onCancel,
 }: BookingCardProps) {
+  const { t } = useI18n();
   const handleCancel = useCallback(
     () => onCancel(booking.id),
     [booking.id, onCancel]
@@ -30,8 +32,11 @@ export default function BookingCard({
           <time dateTime={booking.startsAt}>
             {formatUtcRange(booking.startsAt, booking.endsAt)}
           </time>
-          , {detail}, {booking.attendees}{" "}
-          {booking.attendees === 1 ? "person" : "people"}
+          , {detail},{" "}
+          {t(
+            `${booking.attendees} ${booking.attendees === 1 ? "person" : "people"}`,
+            `${booking.attendees} 人`
+          )}
         </p>
       </div>
       <Button
@@ -40,7 +45,7 @@ export default function BookingCard({
         size="sm"
         variant="outline"
       >
-        Cancel
+        {t("Cancel", "取消")}
       </Button>
     </li>
   );

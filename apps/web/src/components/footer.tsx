@@ -1,16 +1,24 @@
 import { Button } from "#/components/ui/button";
 import { Separator } from "#/components/ui/separator";
+import { useI18n } from "#/lib/i18n";
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const { t } = useI18n();
 
   return (
     <footer className="site-footer px-4 pt-10 pb-14 text-muted-foreground">
       <div className="page-wrap flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
         <p className="m-0 text-sm">
-          &copy; {year} Your name here. All rights reserved.
+          &copy; {year}{" "}
+          {t(
+            "Teamdesk Workshop. All rights reserved.",
+            "Teamdesk 工作坊。保留所有权利。"
+          )}
         </p>
-        <p className="island-kicker m-0">Built with TanStack Start</p>
+        <p className="island-kicker m-0">
+          {t("Built with TanStack Start", "基于 TanStack Start 构建")}
+        </p>
       </div>
       <Separator className="my-4" />
       <div className="flex justify-center gap-4">
