@@ -67,10 +67,20 @@
   - **GitHub Fork 与 Push**：使用 `gh repo fork` 创建个人 Fork `https://github.com/g1ovell/claude-code-workshop-teamdesk`，将 `origin` 指向该 Fork（原官方仓库设为 `upstream`），并执行 `git push -u origin main` 推送全部 Commit。
   - **Cloudflare 生产重新部署**：执行 `bun run deploy` 将包含 `/my-day` 的最新版本发布至 `https://teamdesk.wuwukai0707.workers.dev`（Version ID：`e8176d40-663d-43cc-8374-40c4c0eb04ff`）。
 
+### 8. [10:48] 额外扩展：全站中英文双语切换（EN / 中文）与深度学习教材编写
+- **用户输入**：要求添加全站网页中英文双语切换（默认英文 `en`），并在完成后更新交互日志并编写学习导向的实验讲义 `docs/learning/teamdesk-workshop-learning.md`。
+- **Agent 动作**：
+  - **实现双语切换系统 (`4cfe1e9`)**：
+    - 新增 `apps/web/src/lib/i18n.tsx`（提供 `I18nProvider`、`useI18n` 及 `localStorage` 持久化，SSR 与首屏默认 `"en"` 保证无水合冲突）和 `apps/web/src/components/language-toggle.tsx`（导航栏右上角 `EN / 中文` 切换按钮）。
+    - 完成导航栏、页脚、首页、`Bookings`、`My day`、`Tasks`、`Rooms`、`Team`、`Notes`、`About` 及所有子组件（`MemberPicker`, `BookingForm`, `BookingCard`, `TaskList`, `RoomList`, `AnnouncementList`, `PageError`）的中英文双语化。
+    - 通过 `bun run fix`、`bun run check` 与 `bun test`（**57 pass, 0 fail**），提交 Commit `4cfe1e9`，推送至 `origin/main` 并部署至 Cloudflare Workers（Version ID：`c938d8bd-bbdc-4df8-8716-e78b8d722e66`）。
+  - **编写学习讲义**：创建 `docs/learning/teamdesk-workshop-learning.md`。
+
 ---
 
 ## 二、 Git 提交记录汇总（已在 `g1ovell/claude-code-workshop-teamdesk` 同步）
 
+- `4cfe1e9` — Add English/Chinese (EN/ZH) bilingual toggle across all pages
 - `17106a4` — Phase 3: Add `/my-day` route and navigation links
 - `ebe1473` — Phase 2: Add `bookings.forMemberDay` tRPC procedure
 - `7daeeb2` — Phase 1: Add My Day spec, plan, and DB/service queries with tests
