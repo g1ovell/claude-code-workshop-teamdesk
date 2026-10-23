@@ -33,8 +33,7 @@ describe("tasks service", () => {
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
-  // biome-ignore lint/suspicious/noSkippedTests: due dates are not validated yet, re-enable when tasks.ts checks them
-  test.skip("create rejects a due date in the past", async () => {
+  test("create rejects a due date in the past", async () => {
     await expect(
       tasks.create(
         team.ana.id,

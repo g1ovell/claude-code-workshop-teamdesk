@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import BookingList from "#/components/bookings/BookingList";
@@ -12,7 +13,9 @@ import FormError from "#/components/form-error";
 import MemberPicker from "#/components/member-picker";
 import PageError from "#/components/page-error";
 import TaskList from "#/components/task-list";
+import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
+import { Spinner } from "#/components/ui/spinner";
 import { useActingMember } from "#/hooks/use-acting-member";
 import { useAction } from "#/hooks/use-action";
 import { getTrpc } from "#/integrations/trpc/client";
@@ -55,8 +58,13 @@ function MyDayPage() {
   const { t } = useI18n();
   const actorId = actingMember?.id ?? "";
 
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+
+  // Guard against race conditions when quickly switching acting member or date
+  const activeRequestIdRef = useRef(0);
 
   const roomNames = useMemo(
     () => new Map(rooms.map((r) => [r.id, r.name])),
@@ -65,25 +73,51 @@ function MyDayPage() {
 
   const loadMyDay = useCallback(async () => {
     if (!actorId) {
-      return;
-    }
-    const trpc = getTrpc();
-    const [dayBookings, assignedTasks] = await Promise.all([
-      trpc.bookings.forMemberDay.query({
-        day: `${day}T00:00:00.000Z`,
-        memberId: actorId,
-      }),
-      trpc.tasks.list.query({ assigneeId: actorId }),
-    ]);
-    setBookings(dayBookings);
-    setTasks(assignedTasks.filter((task) => task.completedAt === null));
-  }, [actorId, day]);
-
-  useEffect(() => {
-    loadMyDay().catch(() => {
       setBookings([]);
       setTasks([]);
-    });
+      setIsLoading(false);
+      setLoadError(null);
+      return;
+    }
+
+    activeRequestIdRef.current += 1;
+    const currentRequestId = activeRequestIdRef.current;
+    setIsLoading(true);
+    setLoadError(null);
+
+    try {
+      const trpc = getTrpc();
+      const [dayBookings, assignedTasks] = await Promise.all([
+        trpc.bookings.forMemberDay.query({
+          day: `${day}T00:00:00.000Z`,
+          memberId: actorId,
+        }),
+        trpc.tasks.list.query({ assigneeId: actorId }),
+      ]);
+
+      // Only update state if this is still the most recent request
+      if (currentRequestId === activeRequestIdRef.current) {
+        setBookings(dayBookings);
+        setTasks(assignedTasks.filter((task) => task.completedAt === null));
+        setIsLoading(false);
+      }
+    } catch (err: unknown) {
+      if (currentRequestId === activeRequestIdRef.current) {
+        setIsLoading(false);
+        setLoadError(
+          err instanceof Error
+            ? err.message
+            : t(
+                "Failed to load My Day data. Please try again.",
+                "加载今日概览数据失败，请重试。"
+              )
+        );
+      }
+    }
+  }, [actorId, day, t]);
+
+  useEffect(() => {
+    loadMyDay();
   }, [loadMyDay]);
 
   const handleDayChange = useCallback(
@@ -166,21 +200,52 @@ function MyDayPage() {
         </div>
       </section>
 
+      {/* Query error alert with retry button */}
+      {loadError ? (
+        <section className="mt-8 rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive dark:bg-destructive/20">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="m-0 font-semibold text-sm">
+                {t("Failed to load My Day data", "加载今日概览数据失败")}
+              </p>
+              <p className="m-0 mt-1 text-muted-foreground text-xs">
+                {loadError}
+              </p>
+            </div>
+            <Button
+              className="w-fit"
+              onClick={loadMyDay}
+              size="sm"
+              variant="outline"
+            >
+              {t("Retry", "重试")}
+            </Button>
+          </div>
+        </section>
+      ) : null}
+
       <section className="mt-10">
         <h2 className="mb-4 font-heading text-2xl text-foreground">
           {t(`My bookings on ${day}`, `我在 ${day} 的预订`)}
         </h2>
         <FormError message={cancelBooking.error} />
-        <BookingList
-          bookings={bookings}
-          describe={describeBooking}
-          disabled={cancelBooking.pending}
-          emptyText={t(
-            "You have no bookings on this day.",
-            "您在当天没有会议室预订。"
-          )}
-          onCancel={handleCancelBooking}
-        />
+        {isLoading ? (
+          <div className="flex items-center gap-2 py-6 text-muted-foreground text-sm">
+            <Spinner className="size-4 animate-spin" />
+            <span>{t("Loading bookings…", "正在加载预订…")}</span>
+          </div>
+        ) : (
+          <BookingList
+            bookings={bookings}
+            describe={describeBooking}
+            disabled={cancelBooking.pending}
+            emptyText={t(
+              "You have no bookings on this day.",
+              "您在当天没有会议室预订。"
+            )}
+            onCancel={handleCancelBooking}
+          />
+        )}
       </section>
 
       <section className="mt-10">
@@ -188,13 +253,21 @@ function MyDayPage() {
           {t("My open tasks", "我的待办任务")}
         </h2>
         <FormError message={updateTask.error} />
-        <TaskList
-          disabled={updateTask.pending}
-          members={members}
-          onAssign={handleAssignTask}
-          onComplete={handleCompleteTask}
-          tasks={tasks}
-        />
+        {isLoading ? (
+          <div className="flex items-center gap-2 py-6 text-muted-foreground text-sm">
+            <Spinner className="size-4 animate-spin" />
+            <span>{t("Loading tasks…", "正在加载任务…")}</span>
+          </div>
+        ) : (
+          <TaskList
+            disabled={updateTask.pending}
+            highlightDay={day}
+            members={members}
+            onAssign={handleAssignTask}
+            onComplete={handleCompleteTask}
+            tasks={tasks}
+          />
+        )}
       </section>
     </main>
   );
